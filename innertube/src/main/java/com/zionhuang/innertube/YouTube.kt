@@ -83,6 +83,11 @@ object YouTube {
             innerTube.proxy = value
         }
 
+
+    suspend fun createYoutubePlaylist(title: String) {
+        innerTube.createYoutubePlaylist(WEB_REMIX, title)
+    }
+
     suspend fun searchSuggestions(query: String): Result<SearchSuggestions> = runCatching {
         val response = innerTube.getSearchSuggestions(WEB_REMIX, query).body<GetSearchSuggestionsResponse>()
         SearchSuggestions(
