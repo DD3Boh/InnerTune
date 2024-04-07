@@ -29,6 +29,7 @@ import com.zionhuang.music.ui.component.LocalMenuState
 import com.zionhuang.music.ui.component.YouTubeGridItem
 import com.zionhuang.music.ui.component.shimmer.GridItemPlaceHolder
 import com.zionhuang.music.ui.component.shimmer.ShimmerHost
+import com.zionhuang.music.ui.menu.YouTubeAlbumMenu
 import com.zionhuang.music.ui.menu.YouTubePlaylistMenu
 import com.zionhuang.music.ui.utils.backToMain
 import com.zionhuang.music.viewmodels.AccountViewModel
@@ -45,6 +46,8 @@ fun AccountScreen(
     val coroutineScope = rememberCoroutineScope()
 
     val playlists by viewModel.playlists.collectAsState()
+
+    val albums by viewModel.albums.collectAsState()
 
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = GridThumbnailHeight + 24.dp),
@@ -67,6 +70,31 @@ fun AccountScreen(
                                 YouTubePlaylistMenu(
                                     playlist = item,
                                     coroutineScope = coroutineScope,
+                                    onDismiss = menuState::dismiss
+                                )
+                            }
+                        }
+                    )
+            )
+        }
+
+        items(
+            items = albums.orEmpty(),
+            key = { it.id }
+        ) { item ->
+            YouTubeGridItem(
+                item = item,
+                fillMaxWidth = true,
+                modifier = Modifier
+                    .combinedClickable(
+                        onClick = {
+                            navController.navigate("album/${item.id}")
+                        },
+                        onLongClick = {
+                            menuState.show {
+                                YouTubeAlbumMenu(
+                                    albumItem = item,
+                                    navController = navController,
                                     onDismiss = menuState::dismiss
                                 )
                             }

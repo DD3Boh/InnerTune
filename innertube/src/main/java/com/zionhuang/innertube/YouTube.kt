@@ -370,6 +370,19 @@ object YouTube {
             }
     }
 
+    suspend fun likedAlbums(): Result<List<AlbumItem>> = runCatching {
+        val response = innerTube.browse(
+            client = WEB_REMIX,
+            browseId = "FEmusic_liked_albums",
+            setLogin = true
+        ).body<BrowseResponse>()
+        response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.gridRenderer?.items!!
+            .mapNotNull(GridRenderer.Item::musicTwoRowItemRenderer)
+            .mapNotNull {
+                ArtistItemsPage.fromMusicTwoRowItemRenderer(it) as? AlbumItem
+            }
+    }
+
     suspend fun player(videoId: String, playlistId: String? = null): Result<PlayerResponse> = runCatching {
         val playerResponse = innerTube.player(ANDROID_MUSIC, videoId, playlistId).body<PlayerResponse>()
         if (playerResponse.playabilityStatus.status == "OK") {
