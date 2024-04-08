@@ -34,6 +34,7 @@ import com.zionhuang.music.db.entities.PlaylistSong
 import com.zionhuang.music.db.entities.PlaylistSongMap
 import com.zionhuang.music.db.entities.RelatedSongMap
 import com.zionhuang.music.db.entities.SearchHistory
+import com.zionhuang.music.db.entities.SetVideoIdEntity
 import com.zionhuang.music.db.entities.Song
 import com.zionhuang.music.db.entities.SongAlbumMap
 import com.zionhuang.music.db.entities.SongArtistMap
@@ -242,6 +243,12 @@ interface DatabaseDao {
     @Transaction
     @Query("SELECT * FROM song")
     fun allSongs(): Flow<List<Song>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSetVideoId(setVideoIdEntity: SetVideoIdEntity)
+
+    @Query("SELECT * FROM set_video_id WHERE videoId = :videoId")
+    suspend fun getSetVideoId(videoId: String): SetVideoIdEntity?
 
     @Query("SELECT * FROM format WHERE id = :id")
     fun format(id: String?): Flow<FormatEntity?>

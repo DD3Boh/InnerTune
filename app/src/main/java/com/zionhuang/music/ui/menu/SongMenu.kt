@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -42,6 +43,7 @@ import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.zionhuang.innertube.YouTube
 import com.zionhuang.innertube.models.WatchEndpoint
 import com.zionhuang.music.LocalDatabase
 import com.zionhuang.music.LocalDownloadUtil
@@ -51,6 +53,7 @@ import com.zionhuang.music.constants.ListItemHeight
 import com.zionhuang.music.constants.ListThumbnailSize
 import com.zionhuang.music.db.entities.Event
 import com.zionhuang.music.db.entities.PlaylistSongMap
+import com.zionhuang.music.db.entities.SetVideoIdEntity
 import com.zionhuang.music.db.entities.Song
 import com.zionhuang.music.extensions.toMediaItem
 import com.zionhuang.music.models.toMediaMetadata
@@ -62,6 +65,7 @@ import com.zionhuang.music.ui.component.GridMenuItem
 import com.zionhuang.music.ui.component.ListDialog
 import com.zionhuang.music.ui.component.SongListItem
 import com.zionhuang.music.ui.component.TextFieldDialog
+import kotlinx.coroutines.launch
 
 @Composable
 fun SongMenu(
@@ -76,6 +80,7 @@ fun SongMenu(
     val songState = database.song(originalSong.id).collectAsState(initial = originalSong)
     val song = songState.value ?: originalSong
     val download by LocalDownloadUtil.current.getDownload(originalSong.id).collectAsState(initial = null)
+    val coroutineScope = rememberCoroutineScope()
 
     var showEditDialog by rememberSaveable {
         mutableStateOf(false)
@@ -111,6 +116,22 @@ fun SongMenu(
                         position = playlist.songCount
                     )
                 )
+                coroutineScope.launch {
+                    playlist.playlist.browseId?.let { it ->
+                        YouTube.addToPlaylist(it, song.id).onSuccess {
+                            if (it.playlistEditResults.isNotEmpty()) {
+                                for (playlistEditResult in it.playlistEditResults) {
+                                    insertSetVideoId(
+                                        SetVideoIdEntity(
+                                            playlistEditResult.playlistEditVideoAddedResultData.videoId,
+                                            playlistEditResult.playlistEditVideoAddedResultData.setVideoId,
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         onDismiss = { showChoosePlaylistDialog = false }
